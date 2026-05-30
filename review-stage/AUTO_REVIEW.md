@@ -109,3 +109,35 @@ The final manuscript uses a calibrated general single-peaked regional MFD `G_I(n
 
 The static SO and path-planning layers generate service flows, route proportions, macro boundary flows, and regional throughput demands `\Lambda_I`. The dynamic layer uses destination-labeled conservation equations and scalar perimeter controls `u_I` to match the static throughput target under fixed routing. Feasibility is checked by MFD capacity, free-flow target location, network conservation, transient cross-region transfer, and a local Hurwitz test for the component linearization.
 
+## LAATDraft_v1.1 Logic Closure Review (2026-05-30)
+
+Target manuscript: `LAATDraft_v1.1.tex` generated from `drafts/NewDraft_v1.0_20260525.tex`.
+
+### Assessment Summary
+
+- Score: 7/10 before fixes.
+- Verdict: almost before fixes; fixed by minimal logic-closure edits.
+- Key criticisms:
+  - Static--dynamic bridge needed to be explicitly limited to flow-level closure, not strict equality between path-layer Little-law density and dynamic MFD target density.
+  - Network feasibility algorithm returned before the Hurwitz stability check and did not take `\kappa_I` / `\epsilon_I` as inputs.
+  - Bridge proof needed to avoid division by zero for zero-throughput neighbor regions.
+  - Multi-region stability conclusion needed to be scoped to the static reachable support set `\mathcal S`.
+  - Algorithm 1 needed executable inputs, inner-loop stopping rules, and a nonconvergence status flag.
+
+### Actions Taken
+
+- Wrote the revised manuscript to `LAATDraft_v1.1.tex`.
+- Renamed and reframed Theorem `\ref{thm:steady_state_bridge}` as a flow-level bridge and added a density-closure residual remark.
+- Added a remark clarifying that the candidate target construction is not an extra steady-state assumption.
+- Restricted bridge-proof divisions by `\Lambda_H` to positive-throughput regions and introduced `\mathcal D_H^+` for zero destination-flow cases.
+- Strengthened the equilibrium-existence proof for zero-throughput regions.
+- Added the missing bridge-balance premise to the single-region Lyapunov lemma.
+- Scoped the multi-region Hurwitz theorem conclusion to support-set errors and stated that support-set-external perturbations require fallback routing and a new `A`.
+- Completed Algorithm 1 inputs/inner stopping/nonconvergence output and Algorithm 2 inputs/label/failure returns/stability output.
+- Moved the external departure definition before the conservation lemma.
+- Strengthened the SO convexity proposition by requiring nonnegative waiting-time functions.
+
+### Verification
+
+- `latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error LAATDraft_v1.1.tex` completed successfully.
+- Final log scan found no LaTeX warnings, undefined references, overfull boxes, or errors.
