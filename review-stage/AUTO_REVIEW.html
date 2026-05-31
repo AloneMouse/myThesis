@@ -3,27 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Review Log</title>
+<title>LAAT Simplified Draft Auto Review</title>
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="review-stage\AUTO_REVIEW.md">
-<meta name="aris:source-sha256" content="fcd89f52ff46e3c3cd4a9a7914845b8f044209159f28912ef66ffbd53b534a96">
-<meta name="aris:generated-at" content="2026-05-30 03:58 UTC">
+<meta name="aris:source-sha256" content="4cec420225163860d854f6b625d86ab53b2fbb5e107de639982351ef83ea6558">
+<meta name="aris:generated-at" content="2026-05-30 05:11 UTC">
 
-<!-- MathJax 3 -->
-<script>
-window.MathJax = {
-  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
-  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
-};
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-
-<!-- highlight.js -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
-<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
-<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
-
+<!-- offline mode: MathJax + highlight.js skipped; math and code blocks render as plain text -->
 
 <style>
 :root {
@@ -348,19 +335,29 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <li><a href="#verification">Verification</a></li>
 </ul>
 </li>
+<li><a href="#laatdraftv12-simplification-review-2026-05-30">LAATDraft_v1.2 Simplification Review (2026-05-30)</a>
+<ul>
+<li><a href="#assessment-summary-3">Assessment Summary</a></li>
+<li><a href="#reviewer-raw-response-2">Reviewer Raw Response</a></li>
+<li><a href="#actions-taken-3">Actions Taken</a></li>
+<li><a href="#verification-1">Verification</a></li>
+</ul>
+</li>
+<li><a href="#method-description-1">Method Description</a>
+</li>
 </ol>
 </nav>
 
 <main>
 <header class="hero">
-  <div class="eyebrow">Review Stage</div>
-  <h1>Auto Review Log</h1>
+  <div class="eyebrow">Workflow 2</div>
+  <h1>LAAT Simplified Draft Auto Review</h1>
   
   
   <div class="meta">
     <span><strong>Source:</strong> <code>review-stage\AUTO_REVIEW.md</code></span>
-    <span><strong>SHA256:</strong> <code>fcd89f52ff46</code></span>
-    <span><strong>Rendered:</strong> 2026-05-30 03:58 UTC</span>
+    <span><strong>SHA256:</strong> <code>4cec42022516</code></span>
+    <span><strong>Rendered:</strong> 2026-05-30 05:11 UTC</span>
     
   </div>
 </header>
@@ -418,22 +415,50 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <ul><li>Wrote the revised manuscript to <code>LAATDraft_v1.1.tex</code>.</li><li>Renamed and reframed Theorem <code>\ref{thm:steady_state_bridge}</code> as a flow-level bridge and added a density-closure residual remark.</li><li>Added a remark clarifying that the candidate target construction is not an extra steady-state assumption.</li><li>Restricted bridge-proof divisions by <code>\Lambda_H</code> to positive-throughput regions and introduced <code>\mathcal D_H^+</code> for zero destination-flow cases.</li><li>Strengthened the equilibrium-existence proof for zero-throughput regions.</li><li>Added the missing bridge-balance premise to the single-region Lyapunov lemma.</li><li>Scoped the multi-region Hurwitz theorem conclusion to support-set errors and stated that support-set-external perturbations require fallback routing and a new <code>A</code>.</li><li>Completed Algorithm 1 inputs/inner stopping/nonconvergence output and Algorithm 2 inputs/label/failure returns/stability output.</li><li>Moved the external departure definition before the conservation lemma.</li><li>Strengthened the SO convexity proposition by requiring nonnegative waiting-time functions.</li></ul>
 <h3 id="verification">Verification</h3>
 <ul><li><code>latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error LAATDraft_v1.1.tex</code> completed successfully.</li><li>Final log scan found no LaTeX warnings, undefined references, overfull boxes, or errors.</li></ul>
+<h2 id="laatdraftv12-simplification-review-2026-05-30">LAATDraft_v1.2 Simplification Review (2026-05-30)</h2>
+<p>Target manuscript: <code>drafts/LAATDraft_v1.2_simplified.tex</code>.</p>
+<h3 id="assessment-summary-3">Assessment Summary</h3>
+<ul><li>Initial simplification review score: 5/10, verdict: not ready.</li><li>Final review score after fixes: 9/10, verdict: ready.</li><li>Main criticism before simplification: <code>LAATDraft_v1.1.tex</code> was mathematically patched but structurally over-complex, with static SO, path fixed point, destination-component dynamics, support-set logic, bridge proofs, existence/uniqueness, stability and feasibility all competing as the main model.</li><li>Final accepted model: a minimal regional MFD closed loop using total regional accumulations <code>n_i(t)</code>, aggregate routing proportions <code>\beta_{ij}</code>, a calibrated single-peaked <code>G_i(n_i)</code>, free-flow target construction, and a scalar release controller.</li></ul>
+<h3 id="reviewer-raw-response-2">Reviewer Raw Response</h3>
+<details>
+<summary>Initial simplification review</summary>
+<p>Score: 5/10</p>
+<p>Verdict: not ready</p>
+<p>The current manuscript has many correct mathematical patches, but the main line is overloaded. It tries to simultaneously prove elastic SO, congestion-aware path fixed point, destination-component dynamics, static-dynamic bridge, existence/uniqueness, local stability, and feasibility diagnosis. Compared with Aboudolas and Geroliminis 2013, Geroliminis et al. 2013, Yildirimoglu et al. 2015, Boufous et al. 2020, and Ma and Liu 2024, mature multi-region MFD papers usually keep one narrow model as the theoretical core and move route/signal/implementation modules into algorithmic or numerical layers.</p>
+<p>Minimum model recommendation:</p>
+<ul><li>Keep regional total accumulation <code>n_i(t)</code> as the main state.</li><li>Let static routing output aggregate boundary flows and fixed route proportions <code>\beta_{ij}</code>.</li><li>Keep a general single-peaked MFD <code>G_i</code>.</li><li>Use dynamics <code>\dot n_i=q_i^g+\sum_{j\ne i}\beta_{ji}u_jG_j(n_j)-u_iG_i(n_i)</code>.</li><li>Construct targets by <code>\bar n_i=G_{i,s}^{-1}(\Lambda_i/\bar u_i)</code>.</li><li>Use scalar release control <code>u_i(t)=sat((\Lambda_i+\kappa_i(n_i-\bar n_i))/max\{G_i(n_i),\epsilon_i\})</code>.</li><li>Use <code>\rho(B)&lt;1</code> to obtain the simple closed-loop error system <code>\dot e=(B^T-I)Ke</code>.</li></ul>
+<p>Recommended deletions or downgrades: elastic demand inverse functions, vertiport BPR waiting costs, path-density fixed point convergence proof, destination-labeled component dynamics, support consistency, fallback routing, component Jacobian main theorem, integral Lyapunov proof, congested-branch saturation recovery, and the six-experiment simulation matrix.</p>
+</details>
+<details>
+<summary>Final reviewer confirmation</summary>
+<p>Score: 9/10</p>
+<p>Verdict: ready</p>
+<p>The final reviewer confirmed that <code>drafts/LAATDraft_v1.2_simplified.tex</code> has been reduced to the desired minimal regional accumulation loop. The nonnegative-flow and non-neighbor <code>T_{ij}=0</code> conditions are explicit; <code>\mathcal R_+</code>, <code>B</code>, <code>K</code>, and the error-vector dimensions are consistent; the projection/correction note for externally provided flows is included; the local unsaturated neighborhood is closed; and the error system is correctly stated as an exact equality in that neighborhood.</p>
+<p>The stability proof is acceptable: <code>\rho(B)&lt;1</code> implies <code>I-B^T</code> is a nonsingular M-matrix; right multiplication by positive diagonal <code>K</code> preserves that property via the positive-vector argument; therefore <code>(B^T-I)K</code> is Hurwitz. No blockers remain. Only minor prose polishing is left.</p>
+</details>
+<h3 id="actions-taken-3">Actions Taken</h3>
+<ul><li>Created <code>drafts/LAATDraft_v1.2_simplified.tex</code> as a new minimal-model manuscript rather than overwriting <code>LAATDraft_v1.1.tex</code>.</li><li>Reduced the main model to regional total accumulations <code>n_i(t)</code> only.</li><li>Moved congestion-aware path search, Logit splitting, and SO/path iteration into the static aggregation layer rather than the core stability theorem.</li><li>Defined static conservation, <code>\Lambda_i</code>, route proportions <code>\beta_{ij}</code>, completion/leaving proportions <code>\beta_{i0}</code>, and active set <code>\mathcal R_+</code>.</li><li>Replaced the destination-component Hurwitz test with the simpler regional error system <code>\dot{\bm e}=(B^T-I)K\bm e</code>.</li><li>Added the M-matrix proof detail showing that <code>(I-B^T)K</code> remains a nonsingular M-matrix.</li><li>Added a minimal validation algorithm and reduced the recommended numerical study to three experiments: closed-loop stability, routing-strategy comparison, and robustness/saturation sensitivity.</li></ul>
+<h3 id="verification-1">Verification</h3>
+<ul><li><code>latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error LAATDraft_v1.2_simplified.tex</code> completed successfully.</li><li>Final log scan found no LaTeX warnings, undefined references, overfull boxes, underfull boxes, or errors.</li></ul>
+<h2 id="method-description-1">Method Description</h2>
+<p>The simplified method uses a regional MFD network with one state per region: <code>n_i(t)</code>. Static routing aggregates OD/path decisions into nonnegative conserved flows <code>T_{ij}</code> and completion flows <code>T_{i0}</code>, producing route proportions <code>\beta_{ij}</code> and regional throughput demands <code>\Lambda_i</code>. For each active region, a control margin <code>\bar u_i\in(0,1)</code> places the target on the MFD free-flow branch via <code>\bar n_i=G_{i,s}^{-1}(\Lambda_i/\bar u_i)</code>.</p>
+<p>The closed-loop controller is a scalar regional release law that forces the unsaturated outflow to <code>\Lambda_i+\kappa_i(n_i-\bar n_i)</code>. In the local free-flow unsaturated neighborhood, the exact error dynamics reduce to <code>\dot{\bm e}=(B^T-I)K\bm e</code>. If the inter-region route matrix <code>B</code> is substochastic and <code>\rho(B)&lt;1</code>, then <code>(B^T-I)K</code> is Hurwitz and the target regional accumulations are locally exponentially stable.</p>
 <h2 id="sidecar-state">Sidecar — <code>REVIEW_STATE.json</code></h2>
 <details><summary>Sidecar JSON: <code>E:\myThesis\review-stage\REVIEW_STATE.json</code></summary><pre><code class="language-json">{
-  &quot;round&quot;: 3,
-  &quot;agent_id&quot;: &quot;019e76fa-bb68-7d73-a9fa-1e782bb51435&quot;,
+  &quot;round&quot;: 4,
+  &quot;agent_id&quot;: &quot;019e773e-7c1a-78c1-bdfd-ae77b52ad182&quot;,
   &quot;status&quot;: &quot;completed&quot;,
-  &quot;last_score&quot;: 7.0,
-  &quot;last_verdict&quot;: &quot;almost&quot;,
+  &quot;last_score&quot;: 9.0,
+  &quot;last_verdict&quot;: &quot;ready&quot;,
   &quot;pending_experiments&quot;: [],
-  &quot;timestamp&quot;: &quot;2026-05-30T11:57:44+08:00&quot;
+  &quot;timestamp&quot;: &quot;2026-05-30T13:09:50+08:00&quot;
 }</code></pre></details>
 
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>review-stage\AUTO_REVIEW.md</code> ·
-  SHA256 <code>fcd89f52ff46</code> ·
-  generated at 2026-05-30 03:58 UTC.
+  SHA256 <code>4cec42022516</code> ·
+  generated at 2026-05-30 05:11 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>

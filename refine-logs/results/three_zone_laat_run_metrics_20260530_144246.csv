@@ -1,0 +1,12 @@
+run_id,status,classification,success,rho_b,max_real_eig_a,conservation_residual,beta_residual,target_residual,capacity_condition_min_margin,final_error_ratio,log_error_slope,saturation_fraction,oracle_mismatch,tolerance_final_diff,notes
+R001,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Scenario matches the deterministic plan table
+R002,DONE,SUPPORTS_THEOREM,True,,,1.1102230246251565e-16,0.0,0.0,0.2999999999999998,,,,,,Static bridge and target feasibility passed
+R003,DONE,SUPPORTS_THEOREM,True,0.0,-0.4,,,,,,,,,,Spectral and hand-computed matrix checks passed
+R004,DONE,SUPPORTS_THEOREM,True,,,,,,,0.002097435528290182,-0.31652462322825353,0.0,9.648768240730867e-10,2.7650389320615013e-11,Local theorem-support trajectory
+R005,DONE,SUPPORTS_THEOREM,True,,,,,,,0.0007599427526546715,-0.30347928337667207,0.0,7.351231209499825e-10,7.331518462672812e-12,Local theorem-support trajectory
+R006,DONE,SUPPORTS_THEOREM,True,,,,,,,0.0007599427530924395,-0.3034792834195357,0.0,6.506496729031895e-10,6.937052771317952e-12,Local theorem-support trajectory
+R007,DONE,ASSUMPTION_FAILURE,True,1.0000000000000009,-8.663191091789485e-17,0.0,0.0,0.0,0.29999999999999993,,,,,,Correctly rejected stress case: rho(B)=1; failures=['L3_stability_assumptions']
+R008,DONE,ASSUMPTION_FAILURE,True,0.0,-0.4,2.220446049250313e-16,0.0,0.0,-0.060000000000000275,,,,,,"Correctly rejected stress case: Lambda_i >= ubar_i Gmax; failures=['L2_target_feasibility', 'region 1: Lambda=0.96 is not below ubar*Gmax=0.9', 'region 2: Lambda=0.96 is not below ubar*Gmax=0.9', 'region 3: Lambda=0.96 is not below ubar*Gmax=0.9']"
+R009,DONE,OUTSIDE_LOCAL_REGION,True,,,,,,,0.0035538048164134397,-0.28918889230875183,0.1327006327006327,0.2639784657723005,2.020407831556206e-10,Correctly flagged as outside the local unsaturated region
+R010,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Sampled Euler stability and step-sensitivity check passed
+R011,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Final audit passed

@@ -1,0 +1,12 @@
+run_id,status,classification,success,rho_b,max_real_eig_a,conservation_residual,beta_residual,target_residual,capacity_condition_min_margin,final_error_ratio,log_error_slope,saturation_fraction,oracle_mismatch,tolerance_final_diff,notes
+R001,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Scenario matches the non-toy Weng-scale deterministic plan table
+R002,DONE,SUPPORTS_THEOREM,True,,,0.0,1.1102230246251565e-16,0.0,1.3359999999999967,,,,,,Static bridge and target feasibility passed
+R003,DONE,SUPPORTS_THEOREM,True,0.4977163954351855,-0.280913441825926,,,,,,,,,,Spectral and hand-computed matrix checks passed
+R004,DONE,SUPPORTS_THEOREM,True,,,,,,,4.807068606288659e-08,-0.2808957019469336,0.0,1.0469799044828367e-09,1.0168946456753697e-11,Local theorem-support trajectory
+R005,DONE,SUPPORTS_THEOREM,True,,,,,,,1.4187099506091826e-08,-0.28507169471006183,0.0,7.515423530694812e-10,9.741919234131032e-12,Local theorem-support trajectory
+R006,DONE,SUPPORTS_THEOREM,True,,,,,,,1.4187096918031523e-08,-0.28507166501895037,0.0,7.618674444823665e-10,9.642860783061472e-12,Local theorem-support trajectory
+R007,DONE,ASSUMPTION_FAILURE,True,0.9999999999999998,-2.7755575615628914e-17,0.0,0.0,4.440892098500626e-16,5.935999999999998,,,,,,Correctly rejected stress case: rho(B)=1; failures=['L3_stability_assumptions']
+R008,DONE,ASSUMPTION_FAILURE,True,0.49771639543518564,-0.2809134418259259,0.0,1.1102230246251565e-16,0.0,-0.3840000000000021,,,,,,"Correctly rejected stress case: Lambda_i >= ubar_i Gmax; failures=['L2_target_feasibility', 'region 1: Lambda=10.08 is not below ubar*Gmax=9.936', 'region 2: Lambda=10.32 is not below ubar*Gmax=9.936', 'region 3: Lambda=10.32 is not below ubar*Gmax=9.936']"
+R009,DONE,OUTSIDE_LOCAL_REGION,True,,,,,,,6.841683543145715e-08,-0.28093078007070543,0.0527338329170136,0.27917802882327625,4.434075092010384e-11,Correctly flagged as outside the local unsaturated region
+R010,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Sampled Euler stability and step-sensitivity check passed
+R011,DONE,SUPPORTS_THEOREM,True,,,,,,,,,,,,Final audit passed

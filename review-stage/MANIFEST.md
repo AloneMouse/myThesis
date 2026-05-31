@@ -7,3 +7,5 @@ Generated on 2026-05-30.
 - `REVIEW_STATE.json`: completed auto-review-loop state for `drafts/NewDraft_v1.0_20260525.tex`.
 - `../LAATDraft_v1.1.tex`: revised logic-closure manuscript generated on 2026-05-30.
 - `../LAATDraft_v1.1.pdf`: compiled PDF verification artifact for `LAATDraft_v1.1.tex`.
+- `../drafts/LAATDraft_v1.2_simplified.tex`: simplified regional-accumulation MFD closed-loop manuscript generated on 2026-05-30.
+- `../drafts/LAATDraft_v1.2_simplified.pdf`: compiled PDF verification artifact for `LAATDraft_v1.2_simplified.tex`.

@@ -1,0 +1,402 @@
+{
+  "metadata": {
+    "timestamp": "2026-05-30 14:42",
+    "plan": "E:\\myThesis\\refine-logs\\EXPERIMENT_PLAN.md",
+    "script": "E:\\myThesis\\tools\\laat_three_zone_experiment.py",
+    "command": "python.exe tools\\laat_three_zone_experiment.py",
+    "python": "3.8.6 (tags/v3.8.6:db45529, Sep 23 2020, 15:52:53) [MSC v.1927 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19041-SP0",
+    "numpy": "1.23.5"
+  },
+  "scenario": {
+    "q_g": [
+      0.6,
+      0.2,
+      0.0
+    ],
+    "t_matrix": [
+      [
+        0.0,
+        0.4,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.6
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "t_exit": [
+      0.2,
+      0.0,
+      0.6
+    ],
+    "lambda": [
+      0.6000000000000001,
+      0.6,
+      0.6
+    ],
+    "beta": [
+      [
+        0.0,
+        0.6666666666666666,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "beta_exit": [
+      0.3333333333333333,
+      0.0,
+      1.0
+    ],
+    "target": [
+      4.226497308103744,
+      4.226497308103743,
+      4.226497308103743
+    ],
+    "b_matrix": [
+      [
+        0.0,
+        0.6666666666666666,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "a_matrix": [
+      [
+        -0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.26666666666666666,
+        -0.5,
+        0.0
+      ],
+      [
+        0.0,
+        0.4,
+        -0.4
+      ]
+    ]
+  },
+  "runs": [
+    {
+      "run_id": "R001",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "parameter_max_abs_mismatch": 1.1102230246251565e-16
+      },
+      "notes": "Scenario matches the deterministic plan table"
+    },
+    {
+      "run_id": "R002",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "conservation_residual": 1.1102230246251565e-16,
+        "beta_residual": 0.0,
+        "target_residual": 0.0,
+        "capacity_condition_min_margin": 0.2999999999999998,
+        "interface_min_margin": 0.6,
+        "takeoff_min_margin": 0.4
+      },
+      "notes": "Static bridge and target feasibility passed"
+    },
+    {
+      "run_id": "R003",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "rho_b": 0.0,
+        "max_real_eig_a": -0.4,
+        "a_matrix_max_abs_mismatch": 0.0,
+        "eig_a_real": [
+          -0.4,
+          -0.5,
+          -0.5
+        ]
+      },
+      "notes": "Spectral and hand-computed matrix checks passed"
+    },
+    {
+      "run_id": "R004",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "initial_error_norm": 0.7320508075688781,
+        "final_error_norm": 0.001535429372308484,
+        "final_error_ratio": 0.002097435528290182,
+        "log_error_slope": -0.31652462322825353,
+        "oracle_mismatch": 9.648768240730867e-10,
+        "tolerance_final_diff": 2.7650389320615013e-11,
+        "saturation_events": 0,
+        "saturation_fraction": 0.0,
+        "nonnegative_violations": 0,
+        "capacity_violations": 0,
+        "max_capacity_excess": 0.0,
+        "min_raw_u": 0.6000056811922071,
+        "max_raw_u": 0.7183946842063071,
+        "min_raw_r": 0.0,
+        "max_raw_r": 0.5999980811718896
+      },
+      "artifacts": {
+        "trajectory_csv": "E:\\myThesis\\refine-logs\\results\\trajectories_20260530_144246\\R004.csv",
+        "figure": "E:\\myThesis\\refine-logs\\figures\\three_zone_laat_R004.png"
+      },
+      "notes": "Local theorem-support trajectory"
+    },
+    {
+      "run_id": "R005",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "initial_error_norm": 0.7320508075688779,
+        "final_error_norm": 0.0005563167057869683,
+        "final_error_ratio": 0.0007599427526546715,
+        "log_error_slope": -0.30347928337667207,
+        "oracle_mismatch": 7.351231209499825e-10,
+        "tolerance_final_diff": 7.331518462672812e-12,
+        "saturation_events": 0,
+        "saturation_fraction": 0.0,
+        "nonnegative_violations": 0,
+        "capacity_violations": 0,
+        "max_capacity_excess": 0.0,
+        "min_raw_u": 0.46632714370559325,
+        "max_raw_u": 0.7183946842063071,
+        "min_raw_r": 0.0,
+        "max_raw_r": 0.5999980811726751
+      },
+      "artifacts": {
+        "trajectory_csv": "E:\\myThesis\\refine-logs\\results\\trajectories_20260530_144246\\R005.csv",
+        "figure": "E:\\myThesis\\refine-logs\\figures\\three_zone_laat_R005.png"
+      },
+      "notes": "Local theorem-support trajectory"
+    },
+    {
+      "run_id": "R006",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "initial_error_norm": 0.7320508075688776,
+        "final_error_norm": 0.0005563167061074366,
+        "final_error_ratio": 0.0007599427530924395,
+        "log_error_slope": -0.3034792834195357,
+        "oracle_mismatch": 6.506496729031895e-10,
+        "tolerance_final_diff": 6.937052771317952e-12,
+        "saturation_events": 0,
+        "saturation_fraction": 0.0,
+        "nonnegative_violations": 0,
+        "capacity_violations": 0,
+        "max_capacity_excess": 0.0,
+        "min_raw_u": 0.46632714370559325,
+        "max_raw_u": 0.718394684206307,
+        "min_raw_r": 0.0,
+        "max_raw_r": 0.6422649730810374
+      },
+      "artifacts": {
+        "trajectory_csv": "E:\\myThesis\\refine-logs\\results\\trajectories_20260530_144246\\R006.csv",
+        "figure": "E:\\myThesis\\refine-logs\\figures\\three_zone_laat_R006.png"
+      },
+      "notes": "Local theorem-support trajectory"
+    },
+    {
+      "run_id": "R007",
+      "status": "DONE",
+      "classification": "ASSUMPTION_FAILURE",
+      "success": true,
+      "metrics": {
+        "conservation_residual": 0.0,
+        "beta_residual": 0.0,
+        "flow_min": 0.0,
+        "inactive_zero_residual": 0.0,
+        "target_residual": 0.0,
+        "capacity_condition_min_margin": 0.29999999999999993,
+        "interface_min_margin": 0.6,
+        "takeoff_min_margin": 0.5,
+        "takeoff_interior_ok": true,
+        "epsilon_ok": true,
+        "free_branch_ok": true,
+        "rho_b": 1.0000000000000009,
+        "max_real_eig_a": -8.663191091789485e-17,
+        "eig_a_real": [
+          -0.6000000000000003,
+          -0.6000000000000003,
+          -8.663191091789485e-17
+        ],
+        "eig_a_imag": [
+          0.34641016151377557,
+          -0.34641016151377557,
+          0.0
+        ]
+      },
+      "checks": {
+        "L1_static_feasibility": true,
+        "L2_target_feasibility": true,
+        "L3_stability_assumptions": false
+      },
+      "notes": "Correctly rejected stress case: rho(B)=1; failures=['L3_stability_assumptions']"
+    },
+    {
+      "run_id": "R008",
+      "status": "DONE",
+      "classification": "ASSUMPTION_FAILURE",
+      "success": true,
+      "metrics": {
+        "conservation_residual": 2.220446049250313e-16,
+        "beta_residual": 0.0,
+        "flow_min": 0.0,
+        "inactive_zero_residual": 0.0,
+        "target_residual": 0.0,
+        "capacity_condition_min_margin": -0.060000000000000275,
+        "interface_min_margin": 0.24,
+        "takeoff_min_margin": 0.040000000000000036,
+        "takeoff_interior_ok": true,
+        "epsilon_ok": true,
+        "free_branch_ok": false,
+        "rho_b": 0.0,
+        "max_real_eig_a": -0.4,
+        "eig_a_real": [
+          -0.4,
+          -0.5,
+          -0.5
+        ],
+        "eig_a_imag": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "checks": {
+        "L1_static_feasibility": true,
+        "L2_target_feasibility": false,
+        "L3_stability_assumptions": true
+      },
+      "notes": "Correctly rejected stress case: Lambda_i >= ubar_i Gmax; failures=['L2_target_feasibility', 'region 1: Lambda=0.96 is not below ubar*Gmax=0.9', 'region 2: Lambda=0.96 is not below ubar*Gmax=0.9', 'region 3: Lambda=0.96 is not below ubar*Gmax=0.9']"
+    },
+    {
+      "run_id": "R009",
+      "status": "DONE",
+      "classification": "OUTSIDE_LOCAL_REGION",
+      "success": true,
+      "metrics": {
+        "initial_error_norm": 11.489125293076057,
+        "final_error_norm": 0.040830108802911165,
+        "final_error_ratio": 0.0035538048164134397,
+        "log_error_slope": -0.28918889230875183,
+        "oracle_mismatch": 0.2639784657723005,
+        "tolerance_final_diff": 2.020407831556206e-10,
+        "saturation_events": 797,
+        "saturation_fraction": 0.1327006327006327,
+        "nonnegative_violations": 0,
+        "capacity_violations": 462,
+        "max_capacity_excess": 0.2999999724634699,
+        "min_raw_u": -0.336932991491298,
+        "max_raw_u": 2.665468335597054,
+        "min_raw_r": -0.20000000000000007,
+        "max_raw_r": 0.5999045556322863
+      },
+      "artifacts": {
+        "trajectory_csv": "E:\\myThesis\\refine-logs\\results\\trajectories_20260530_144246\\R009.csv",
+        "figure": "E:\\myThesis\\refine-logs\\figures\\three_zone_laat_R009.png"
+      },
+      "notes": "Correctly flagged as outside the local unsaturated region"
+    },
+    {
+      "run_id": "R010",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "exact_final_error_ratio": 0.0007599427609448992,
+        "production_dt": 0.05,
+        "production_dt_half_step_sensitivity": 2.0805853248137226e-05,
+        "sampled_rows": [
+          {
+            "dt": 0.05,
+            "rho_euler": 0.98,
+            "final_error_ratio": 0.0007181152289322896,
+            "absolute_ratio_error_vs_exact": 4.182753201260956e-05
+          },
+          {
+            "dt": 0.1,
+            "rho_euler": 0.96,
+            "final_error_ratio": 0.000677170467860478,
+            "absolute_ratio_error_vs_exact": 8.277229308442126e-05
+          },
+          {
+            "dt": 0.25,
+            "rho_euler": 0.9,
+            "final_error_ratio": 0.0005600288937193189,
+            "absolute_ratio_error_vs_exact": 0.00019991386722558032
+          },
+          {
+            "dt": 0.5,
+            "rho_euler": 0.8,
+            "final_error_ratio": 0.00038617929410974454,
+            "absolute_ratio_error_vs_exact": 0.00037376346683515467
+          }
+        ]
+      },
+      "notes": "Sampled Euler stability and step-sensitivity check passed"
+    },
+    {
+      "run_id": "R011",
+      "status": "DONE",
+      "classification": "SUPPORTS_THEOREM",
+      "success": true,
+      "metrics": {
+        "must_run_completed_before_audit": 9,
+        "expected_must_runs_before_audit": 9,
+        "failed_expectations": [],
+        "supporting_runs": [
+          "R001",
+          "R002",
+          "R003",
+          "R004",
+          "R005",
+          "R006",
+          "R010"
+        ],
+        "assumption_failure_runs": [
+          "R007",
+          "R008"
+        ],
+        "outside_local_runs": [
+          "R009"
+        ]
+      },
+      "notes": "Final audit passed"
+    }
+  ]
+}

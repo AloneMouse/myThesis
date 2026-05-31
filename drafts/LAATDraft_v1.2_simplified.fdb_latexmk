@@ -1,13 +1,13 @@
 # Fdb version 4
-["xdvipdfmx"] 1780073596.63978 "NewDraft_v1.0_20260525.xdv" "NewDraft_v1.0_20260525.pdf" "NewDraft_v1.0_20260525" 1780073597.37209 0
-  "NewDraft_v1.0_20260525.xdv" 1780073596 382192 4a6ee5d1771b132ac2ff891164ef2a07 "xelatex"
+["xdvipdfmx"] 1780117644.75709 "LAATDraft_v1.2_simplified.xdv" "LAATDraft_v1.2_simplified.pdf" "LAATDraft_v1.2_simplified" 1780117645.40311 0
+  "LAATDraft_v1.2_simplified.xdv" 1780117644 77540 0e82ea99b355c209b854dfc6b9928105 "xelatex"
   (generated)
-  "NewDraft_v1.0_20260525.pdf"
+  "LAATDraft_v1.2_simplified.pdf"
   (rewritten before read)
-["xelatex"] 1780073592.97882 "NewDraft_v1.0_20260525.tex" "NewDraft_v1.0_20260525.xdv" "NewDraft_v1.0_20260525" 1780073597.36936 0
-  "NewDraft_v1.0_20260525.aux" 1780073596 14195 3ee3917aca2b468eb36cd557c668e586 "xelatex"
-  "NewDraft_v1.0_20260525.out" 1780073596 5091 1529933b6f977e31df5070c2ee4d70ab "xelatex"
-  "NewDraft_v1.0_20260525.tex" 1780073548 78323 787f11b9b1c555f34e6fa07e274313f4 ""
+["xelatex"] 1780117641.30802 "LAATDraft_v1.2_simplified.tex" "LAATDraft_v1.2_simplified.xdv" "LAATDraft_v1.2_simplified" 1780117645.40002 0
+  "LAATDraft_v1.2_simplified.aux" 1780117644 2447 c35b833cfeb00171c5097c79d6c98f78 "xelatex"
+  "LAATDraft_v1.2_simplified.out" 1780117644 695 13cc6274e5d7ec539a6a67aa1f824478 "xelatex"
+  "LAATDraft_v1.2_simplified.tex" 1780117622 14882 7ffcb81d1f1d376f37db8536c2787803 ""
   "c:/Windows/Fonts/msyh.ttc" 1739446592 19704352 1e10e74402e59d54499af795caf0b135 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1724934999 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1724935962 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
@@ -26,7 +26,6 @@
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmbx7.tfm" 1724934774 1336 3125ccb448c1a09074e3aa4a9832f130 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmbx8.tfm" 1724934774 1332 1fde11373e221473104d6cc5993f046e ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmex10.tfm" 1724934774 992 662f679a0b3d2d53c1b94050fdaa3f50 ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1724934774 1528 abec98dbc43e172678c11b3b9031252a ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1724934774 1524 4414a8315f39513458b80dfc63bff03a ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1724934774 1512 f21f83efb36853c0b70002322c1ab3ad ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmmi8.tfm" 1724934774 1520 eccf95517727cb11801f4f1aee3a21b4 ""
@@ -87,12 +86,7 @@
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/fontspec/fontspec.cfg" 1724935002 549 c4adac819276241fea8eb79c5ab7b99e ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/fontspec/fontspec.sty" 1724935002 3484 ff877041166391bc5ca8a1e45614784e ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/geometry/geometry.sty" 1724935027 41601 9cf6c5257b1bc7af01a58859749dd37a ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics-cfg/graphics.cfg" 1724935054 1224 978390e9c2234eab29404bc21b268d1e ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics-def/xetex.def" 1724935054 14788 1dde73f396dd97d88c838bee2a352abe ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics/graphics.sty" 1724935053 18387 8f900a490197ebaf93c02ae9476d4b09 ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics/graphicx.sty" 1724935053 8010 a8d949cbdbc5c983593827c9eec252e1 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics/keyval.sty" 1724935053 2671 7e67d78d9b88c845599a85b2d41f2e39 ""
-  "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/graphics/trig.sty" 1724935053 4023 293ea1c16429fc0c4cf605f4da1791a9 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/hycolor/hycolor.sty" 1724935097 17914 4c28a13fc3d975e6e81c9bea1d697276 ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/hyperref/hxetex.def" 1724935099 44482 322d742b762029b0d0e00710cc18cced ""
   "d:/Professional_softwares/texlive/2024/texmf-dist/tex/latex/hyperref/hyperref.sty" 1724935099 220920 fd3cbb5f1a2bc9b8f451b8b7d8171264 ""
@@ -121,8 +115,8 @@
   "d:/Professional_softwares/texlive/2024/texmf-var/web2c/xetex/xelatex.fmt" 1724936064 9113902 c1fba5570dbd3d127da2390cef4a13a6 ""
   "d:/Professional_softwares/texlive/2024/texmf.cnf" 1724935973 713 e69b156964470283e0530f5060668171 ""
   (generated)
-  "NewDraft_v1.0_20260525.aux"
-  "NewDraft_v1.0_20260525.log"
-  "NewDraft_v1.0_20260525.out"
-  "NewDraft_v1.0_20260525.xdv"
+  "LAATDraft_v1.2_simplified.aux"
+  "LAATDraft_v1.2_simplified.log"
+  "LAATDraft_v1.2_simplified.out"
+  "LAATDraft_v1.2_simplified.xdv"
   (rewritten before read)

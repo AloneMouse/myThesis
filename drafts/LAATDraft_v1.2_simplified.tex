@@ -1,0 +1,234 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\setstretch{1.25}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[section]
+\newtheorem{proposition}[theorem]{命题}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定义}
+\newtheorem{assumption}[theorem]{假设}
+\newtheorem{algorithm}[theorem]{算法}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{注}
+
+\title{\textbf{多区域低空交通规划与闭环控制的最小 MFD 模型}}
+\author{您的姓名 \\ 您的学院/系, 您的大学}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+本文面向多区域低空交通（LAAT/UAM）规划与控制，提出一个尽量简洁的宏观闭环模型。模型借鉴多区域 MFD 交通文献的成熟骨架：将城市低空划分为若干近似同质区域，以区域总累积量作为状态，以单峰 MFD 描述区域总产出，以静态路由比例描述跨区域流向，以周界放行控制调节区域总流出。静态层只输出守恒的聚合通量、固定路由比例和区域吞吐需求；动态层只跟踪区域总累积量；控制层只使用一个带饱和的比例放行律。本文证明：若静态通量守恒、MFD 容量允许目标位于自由流分支、区域间转移矩阵为次随机且谱半径小于一，则目标点是闭环系统的局部指数稳定均衡。该模型不引入显式飞行时延、起降排队、逐目的地组分状态或大规模 MPC，从而给出一个数学自洽且容易仿真实现的多区域低空流量规划与控制主线。
+
+\textbf{关键词：} 低空交通；多区域网络；宏观基本图；路由比例；周界控制；局部稳定性
+\end{abstract}
+
+\section{引言}
+
+大规模低空交通网络的核心问题可以概括为两件事：静态上，如何把 OD 服务流量分配到多个空域区域；动态上，如何在扰动下避免某些区域累积量偏离高效运行区间。地面多区域 MFD 文献已经形成了一条成熟建模路线：如果网络能被划分为若干近似同质区域，则每个区域可由总累积量和 MFD 产出函数刻画，周界或边界控制负责调节区域间流量。
+
+Aboudolas 和 Geroliminis 的多水库模型把区域累积量作为状态，用 MFD 产出和边界比例构成守恒方程；Geroliminis、Haddad 和 Ramezani 的两区域 MPC 模型进一步展示了 MFD 控制可用于保护拥堵区域；Yildirimoglu 等与 Sirmatel 和 Geroliminis 将路由指导纳入多区域 MFD 框架；Boufous 等强调单独控制外部进入流不足以保证内部负载分配合理。这些文章的共同点不是复杂的微观航路建模，而是低维区域模型、聚合路由比例和闭环反馈。
+
+因此，本文采用最小建模原则。主模型只保留区域总累积量 $n_i(t)$，不在正文中引入目的地组分状态 $n_i^d(t)$；路径规划只作为静态聚合算法，用来生成跨区域通量和路由比例；周界控制只调节区域总流出率，而不重新决定流向。本文的贡献是把“静态规划--MFD 目标构造--周界反馈--稳定性判据”压缩为一个完整闭环。
+
+\section{静态路由聚合}
+
+令 $\mathcal R=\{1,\ldots,R\}$ 为低空区域集合，$\mathcal N_i$ 为区域 $i$ 的邻接区域集合。静态层从 OD 需求、候选区域路径和拥堵感知路径成本出发，生成聚合通量。
+
+对 OD 对 $m$，令 $q_m$ 为服务流量，$\bar q_m$ 为潜在需求，$\mathcal P_m$ 为候选区域路径集合。给定规划密度估计 $\hat{\bm n}$，路径 $p\in\mathcal P_m$ 的低空飞行时间可取为
+\begin{equation}\label{eq:path_time}
+    \tau_{mp}(\hat{\bm n})
+    =
+    \sum_{i\in p}\frac{L_{i,mp}}{v_i(\hat n_i)} ,
+\end{equation}
+其中 $L_{i,mp}$ 是路径 $p$ 在区域 $i$ 内的航程，$v_i(\cdot)$ 是标定速度函数。路径比例可由 Logit 规则给出：
+\begin{equation}\label{eq:logit}
+    \alpha_{mp}
+    =
+    \frac{\exp[-\theta \tau_{mp}(\hat{\bm n})]}
+    {\sum_{r\in\mathcal P_m}\exp[-\theta \tau_{mr}(\hat{\bm n})]},
+    \qquad \theta>0 .
+\end{equation}
+服务流量 $q_m$ 可以由弹性需求系统最优、固定需求分配或任意可复现的规划器给出。本文主定理不依赖该规划器的全局最优性，只要求其最终输出可被聚合为守恒的区域通量。
+
+令 $q_i^g$ 表示静态层给区域 $i$ 的外部起飞输入，$T_{ij}$ 表示从区域 $i$ 转入邻接区域 $j$ 的静态通量，$T_{i0}$ 表示在区域 $i$ 内完成服务并离开空域动态系统的通量。所有聚合通量均非负，且若 $j\notin\mathcal N_i$ 则取 $T_{ij}=0$。这里的 $0$ 是一个“完成/离网”虚拟节点，不是实际空域区域。静态聚合结果必须满足
+\begin{equation}\label{eq:static_conservation}
+    q_i^g+\sum_{j\in\mathcal N_i}T_{ji}
+    =
+    \sum_{j\in\mathcal N_i}T_{ij}+T_{i0},
+    \qquad \forall i\in\mathcal R .
+\end{equation}
+
+定义区域 $i$ 的静态吞吐需求为
+\begin{equation}\label{eq:lambda}
+    \Lambda_i
+    =
+    q_i^g+\sum_{j\in\mathcal N_i}T_{ji}
+    =
+    \sum_{j\in\mathcal N_i}T_{ij}+T_{i0}.
+\end{equation}
+若 $\Lambda_i>0$，定义固定路由比例
+\begin{equation}\label{eq:beta}
+    \beta_{ij}=\frac{T_{ij}}{\Lambda_i},
+    \qquad
+    \beta_{i0}=\frac{T_{i0}}{\Lambda_i}.
+\end{equation}
+若 $\Lambda_i=0$，取 $\beta_{ij}=\beta_{i0}=0$。于是对正吞吐区域，
+\begin{equation}\label{eq:beta_sum}
+    \sum_{j\in\mathcal N_i}\beta_{ij}+\beta_{i0}=1.
+\end{equation}
+记正吞吐区域集合为
+\begin{equation}\label{eq:positive_regions}
+    \mathcal R_+=\{i\in\mathcal R:\Lambda_i>0\}.
+\end{equation}
+
+\begin{remark}
+拥堵感知路径搜索、Logit 分流和 SO--路径交替迭代都属于静态算法层。若通量由完整路径逐段聚合得到，则式 \eqref{eq:static_conservation} 通常自动成立；若通量由外部规划器直接给出，则必须先投影或校正到守恒约束。若路径算法未收敛，仍可把最后一次输出作为候选路由比例，但必须重新检查式 \eqref{eq:static_conservation}、容量条件和闭环稳定性。本文不把路径固定点收敛作为主模型定理的一部分。
+\end{remark}
+
+\section{多区域 MFD 动态}
+
+令 $n_i(t)$ 为区域 $i$ 内航空器总累积量。每个区域的 MFD 产出函数 $G_i(n_i)$ 表示在累积量为 $n_i$ 时区域总流出能力。
+
+\begin{assumption}[一般单峰 MFD]\label{asm:mfd}
+对每个区域 $i$，存在临界累积量 $n_i^{\mathrm{cr}}>0$ 和最大产出 $G_i^{\max}>0$，使得 $G_i(0)=0$，$G_i(n)>0$ 对 $n>0$ 成立；$G_i$ 在 $[0,n_i^{\mathrm{cr}}]$ 上连续可微且严格递增，在 $n_i^{\mathrm{cr}}$ 之后严格递减，并满足 $G_i(n_i^{\mathrm{cr}})=G_i^{\max}$。记自由流分支为 $G_{i,s}$，其反函数 $G_{i,s}^{-1}$ 存在。
+\end{assumption}
+
+区域 $i$ 的控制输入 $u_i(t)\in[0,1]$ 表示总流出放行比例。采用静态路由比例 $\beta_{ij}$ 分配流向，则多区域总量动态为
+\begin{equation}\label{eq:dynamics}
+    \dot n_i(t)
+    =
+    q_i^g
+    +
+    \sum_{j\in\mathcal N_i}\beta_{ji}u_j(t)G_j(n_j(t))
+    -
+    u_i(t)G_i(n_i(t)).
+\end{equation}
+该式是本文的核心被控对象。它只描述区域总累积量，不追踪每个目的地组分；完成流由 $\beta_{i0}u_iG_i(n_i)$ 隐含表示，并通过路由比例归一化进入总流出项。
+
+\section{目标与可行性}
+
+选取控制裕度 $\bar u_i\in(0,1)$。该裕度使目标控制值不位于饱和边界，从而在目标附近存在未饱和反馈邻域。对正吞吐区域，若
+\begin{equation}\label{eq:capacity}
+    0<\Lambda_i<\bar u_iG_i^{\max},
+\end{equation}
+则定义自由流目标累积量
+\begin{equation}\label{eq:target}
+    \bar n_i
+    =
+    G_{i,s}^{-1}\left(\frac{\Lambda_i}{\bar u_i}\right).
+\end{equation}
+若 $\Lambda_i=0$，取 $\bar n_i=0$，并令 $u_i(t)=0$。
+
+\begin{proposition}[目标可构造性]\label{prop:target}
+在假设 \ref{asm:mfd} 和容量条件 \eqref{eq:capacity} 下，每个正吞吐区域存在唯一自由流目标 $\bar n_i\in(0,n_i^{\mathrm{cr}})$，并满足
+\begin{equation}\label{eq:target_balance}
+    \bar u_iG_i(\bar n_i)=\Lambda_i.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+由假设 \ref{asm:mfd}，$G_{i,s}$ 在 $[0,n_i^{\mathrm{cr}}]$ 上严格递增，且值域为 $[0,G_i^{\max}]$。容量条件给出 $\Lambda_i/\bar u_i\in(0,G_i^{\max})$，因此自由流反函数给出唯一 $\bar n_i=G_{i,s}^{-1}(\Lambda_i/\bar u_i)$，并且 $\bar n_i$ 位于自由流分支内部。
+\end{proof}
+
+\begin{proposition}[静态--动态桥接]\label{prop:bridge}
+若静态通量满足守恒式 \eqref{eq:static_conservation}，路由比例由式 \eqref{eq:beta} 给出，且目标由式 \eqref{eq:target} 构造，则 $\bar{\bm n}$ 与 $\bar{\bm u}$ 是动态系统 \eqref{eq:dynamics} 的稳态。
+\end{proposition}
+
+\begin{proof}
+在目标点，$\bar u_jG_j(\bar n_j)=\Lambda_j$。代入式 \eqref{eq:dynamics} 得
+\begin{equation}
+    \dot n_i
+    =
+    q_i^g+\sum_{j\in\mathcal N_i}\beta_{ji}\Lambda_j-\Lambda_i.
+\end{equation}
+由 $\beta_{ji}\Lambda_j=T_{ji}$ 与定义 \eqref{eq:lambda}，右端等于 $q_i^g+\sum_jT_{ji}-\Lambda_i=0$。故目标点为稳态。
+\end{proof}
+
+\section{反馈控制与稳定性}
+
+定义误差 $e_i(t)=n_i(t)-\bar n_i$。对每个正吞吐区域，采用带分母保护的比例放行律：
+\begin{equation}\label{eq:controller}
+    u_i(t)
+    =
+    \operatorname{sat}_{[0,1]}
+    \left(
+    \frac{\Lambda_i+\kappa_i e_i(t)}
+    {\max\{G_i(n_i(t)),\epsilon_i\}}
+    \right),
+    \qquad
+    \kappa_i>0,\quad 0<\epsilon_i<G_i(\bar n_i).
+\end{equation}
+当轨迹位于目标附近、控制未饱和且 $G_i(n_i)>\epsilon_i$ 时，
+\begin{equation}\label{eq:controlled_outflow}
+    u_i(t)G_i(n_i(t))=\Lambda_i+\kappa_i e_i(t).
+\end{equation}
+
+由于 $\bar u_i\in(0,1)$ 且 $\epsilon_i<G_i(\bar n_i)$，由连续性可取足够小的目标邻域，使控制律 \eqref{eq:controller} 未饱和，且分母中的 $\max\{G_i(n_i),\epsilon_i\}$ 实际取 $G_i(n_i)$。
+
+令 $B=[\beta_{ij}]_{i,j\in\mathcal R_+}$ 为只包含正吞吐区域间转移比例的矩阵，不包含完成/离网比例 $\beta_{i0}$；若区域 $i$ 有正完成流，则第 $i$ 行行和严格小于 $1$。令 $K=\operatorname{diag}(\kappa_i)_{i\in\mathcal R_+}$，误差向量 $\bm e$ 也限制在 $\mathcal R_+$ 上。
+
+\begin{theorem}[闭环局部指数稳定]\label{thm:stability}
+考虑所有正吞吐区域 $\mathcal R_+$ 组成的子系统。若目标点位于 MFD 自由流分支内部，控制律 \eqref{eq:controller} 在目标附近未饱和，矩阵 $B$ 非负、次随机，且
+\begin{equation}\label{eq:rho}
+    \rho(B)<1,
+\end{equation}
+则目标均衡点 $\bar{\bm n}$ 对闭环系统 \eqref{eq:dynamics}--\eqref{eq:controller} 局部指数稳定。
+\end{theorem}
+
+\begin{proof}
+在未饱和邻域内，由式 \eqref{eq:controlled_outflow} 和稳态桥接关系可得
+\begin{equation}
+    \dot e_i
+    =
+    \sum_{j\in\mathcal N_i}\beta_{ji}\kappa_j e_j-\kappa_i e_i .
+\end{equation}
+写成向量形式为
+\begin{equation}\label{eq:error_system}
+    \dot{\bm e}
+    =
+    (B^T-I)K\bm e .
+\end{equation}
+因为 $B\ge0$ 且 $\rho(B)<1$，$I-B^T$ 是非奇异 $M$-矩阵。为说明右乘正对角矩阵后该性质仍保持，取 $x>0$ 使 $(I-B^T)x>0$，令 $y=K^{-1}x>0$，则 $(I-B^T)Ky=(I-B^T)x>0$；又 $(I-B^T)K$ 仍是 $Z$-矩阵，因此它是非奇异 $M$-矩阵，其全部特征值实部为正。因此 $-(I-B^T)K=(B^T-I)K$ 为 Hurwitz，误差系统指数稳定。在上述未饱和邻域内，闭环误差动力学精确等于式 \eqref{eq:error_system}，故目标点局部指数稳定。
+\end{proof}
+
+\begin{remark}
+条件 $\rho(B)<1$ 的物理含义是区域间转移最终存在“泄漏”，即有一部分流量完成服务并离开多区域空域系统。若存在一个封闭区域环路，且环路内所有区域都没有完成流或离网流，则 $\rho(B)$ 可能达到 $1$，此时仅靠固定路由比例和总量放行控制无法保证所有区域误差衰减。
+\end{remark}
+
+\section{算法与数值验证}
+
+\begin{algorithm}[最小闭环验证流程]\label{alg:verify}
+给定区域划分、候选路径、需求和 MFD 标定对象，按以下步骤完成规划与控制验证：
+\begin{enumerate}
+    \item 用式 \eqref{eq:path_time}--\eqref{eq:logit} 或其他静态规划器生成 OD 服务流量与路径比例。
+    \item 聚合得到 $q_i^g$、$T_{ij}$ 和 $T_{i0}$，检查静态守恒式 \eqref{eq:static_conservation}。
+    \item 计算 $\Lambda_i$、$\beta_{ij}$ 和 $\beta_{i0}$，检查路由比例归一化 \eqref{eq:beta_sum}。
+    \item 选择控制裕度 $\bar u_i$，检查 $\Lambda_i<\bar u_iG_i^{\max}$，并计算目标 $\bar n_i$。
+    \item 选择反馈增益 $\kappa_i$ 和正则化参数 $\epsilon_i$，构造 $B$，检查 $\rho(B)<1$。
+    \item 在动态系统 \eqref{eq:dynamics} 中施加小扰动，记录 $\|\bm n(t)-\bar{\bm n}\|$、完成流、控制饱和频率和区域最大累积量。
+\end{enumerate}
+\end{algorithm}
+
+建议数值部分只保留三组实验。第一，闭环稳定实验：从目标附近不同初值出发，验证误差指数衰减并对比谱横坐标。第二，路由策略实验：比较固定最短路、拥堵感知 Logit 路由和人工均衡路由对 $\Lambda_i$、$\rho(B)$ 和最大区域累积量的影响。第三，鲁棒与饱和实验：扰动 MFD 容量、需求水平和控制裕度，观察何时违反容量条件或进入饱和区。
+
+\section{模型边界}
+
+本文有意不处理以下扩展。第一，显式飞行时延未进入动态方程；若区域间飞行时间与控制采样周期同量级，应引入延迟状态或 MPC。第二，起降场排队只可作为静态成本进入服务流量分配，不作为本文闭环稳定性的一部分。第三，目的地组分状态可用于更细的路由一致性分析，但会显著增加稳定性证明复杂度，本文把它留作附录或后续工作。第四，在线重路由会把固定 $B$ 的系统变成切换系统，需要新的稳定性条件。第五，当区域已经处于拥堵分支并满足 $G_i(n_i)<\Lambda_i$ 时，提高放行率也可能无法恢复，需要需求削减或临时禁入。
+
+\section{结论}
+
+本文给出一个最小的多区域低空交通 MFD 闭环模型。静态层提供守恒通量和路由比例，MFD 自由流分支给出目标累积量，标量周界控制调节区域总流出，谱半径条件 $\rho(B)<1$ 给出直接可算的局部稳定性判据。与更复杂的逐路径、逐目的地、逐边界模型相比，该模型更接近多区域 MFD 文献的主流简洁结构，也更适合作为后续仿真和论文写作的核心理论框架。
+
+\end{document}
