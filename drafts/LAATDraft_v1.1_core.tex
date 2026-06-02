@@ -1,0 +1,291 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\setstretch{1.25}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{命题}[section]
+\newtheorem{theorem}[proposition]{定理}
+\theoremstyle{definition}
+\newtheorem{assumption}[proposition]{假设}
+\newtheorem{definition}[proposition]{定义}
+\theoremstyle{remark}
+\newtheorem{remark}[proposition]{注}
+
+\title{\textbf{面向低空交通的静态规划--MFD 控制核心模型}}
+\author{您的姓名 \\ 您的学院/系, 您的大学}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+本文想表达的核心思想很简单：先用静态规划决定低空交通需求如何分配到各条区域路径，再把这些静态流量聚合成每个区域需要承载的吞吐量，最后用多区域 MFD 动态和周界控制把区域累积量稳定在合适的自由流目标附近。模型的关键不是追求完整运行细节，而是打通一条清晰链条：
+\[
+\text{OD 需求}
+\ \rightarrow\
+\text{拥堵感知路径比例}
+\ \rightarrow\
+\text{区域吞吐需求 } \Lambda_i
+\ \rightarrow\
+\text{MFD 目标累积量 } \bar n_i
+\ \rightarrow\
+\text{周界反馈控制 } u_i .
+\]
+在该链条中，静态层给出 ``流量应该怎么走''，动态层负责 ``每个区域不要过载''，控制层只调节区域总流出率。本文保留最必要的公式，展示静态规划、MFD 目标构造和闭环控制之间的关系。
+
+\textbf{关键词：} 低空交通；宏观基本图；静态规划；路径比例；周界控制
+\end{abstract}
+
+\section{引言}
+
+大规模低空交通网络面临两个直接问题。第一，起点--终点（OD）需求不可能都走几何最短路径，因为某些空域区域会变得拥堵。第二，动态控制不能只凭经验设置目标，而应该知道每个区域到底需要服务多少流量。
+
+本文的想法是把这两个问题接起来。静态层根据需求和拥堵状态生成路径比例；这些路径比例被聚合成区域通量；区域通量再给出每个区域的目标吞吐需求 $\Lambda_i$。动态层使用 MFD 产出函数 $G_i(n_i)$ 描述区域累积量 $n_i$ 和总流出能力之间的关系，并用周界控制 $u_i$ 调节实际流出。
+
+为突出主线，本文先不讨论飞行时延、起降排队、在线重规划和支持集外扰动。这些细节可以在完整版本中加入，但核心模型应先说明三件事：
+\begin{enumerate}
+    \item 静态规划如何生成区域吞吐需求 $\Lambda_i$；
+    \item $\Lambda_i$ 如何通过 MFD 变成目标累积量 $\bar n_i$；
+    \item 控制律如何让实际累积量 $n_i(t)$ 跟踪 $\bar n_i$。
+\end{enumerate}
+
+\section{静态层：从 OD 需求到区域通量}
+
+令低空网络被划分为区域集合 $\mathcal R=\{1,\ldots,R\}$。OD 对集合记为 $\mathcal M$。对每个 OD 对 $m\in\mathcal M$，设服务流量为 $q_m$，候选区域路径集合为 $\mathcal P_m$。
+
+\subsection{拥堵感知路径成本}
+
+路径层只关心空域飞行时间。给定区域密度估计 $\hat{\bm n}$，路径 $p\in\mathcal P_m$ 的飞行时间写成
+\begin{equation}\label{eq:core_path_time}
+    \tau_{mp}(\hat{\bm n})
+    =
+    \sum_{i\in p}\frac{L_{i,mp}}{v_i(\hat n_i)} ,
+\end{equation}
+其中 $L_{i,mp}$ 是路径 $p$ 在区域 $i$ 内的航程，$v_i(\cdot)$ 是区域速度--密度函数。密度越高，速度越低，路径时间越长。因此路径选择会自然避开高密度区域。
+
+路径比例可用 Logit 规则给出：
+\begin{equation}\label{eq:core_logit}
+    \alpha_{mp}
+    =
+    \frac{\exp[-\theta \tau_{mp}(\hat{\bm n})]}
+    {\sum_{r\in\mathcal P_m}\exp[-\theta \tau_{mr}(\hat{\bm n})]},
+    \qquad \theta>0 .
+\end{equation}
+这里 $\alpha_{mp}$ 表示 OD 对 $m$ 中有多少比例走路径 $p$。$\theta$ 越大，流量越集中到最短时间路径；$\theta$ 较小时，多路径分流更明显。
+
+\subsection{静态服务流量}
+
+服务流量 $q_m$ 可以来自系统最优问题。一个简化写法是
+\begin{equation}\label{eq:core_so}
+    \min_{\{q_m\}}
+    \sum_{m\in\mathcal M} q_m c_m
+    -
+    \sum_{m\in\mathcal M}\int_0^{q_m}D_m^{-1}(\omega)d\omega ,
+    \qquad
+    0\le q_m\le \bar q_m .
+\end{equation}
+其中 $c_m$ 是 OD 对 $m$ 的广义出行成本，$D_m^{-1}$ 是弹性需求逆函数。该目标的含义是：服务需求会带来效用，但也会占用空域和起降资源，因此需要在效用和成本之间取平衡。
+
+在核心模型中，读者只需要记住：静态层最终输出两类量：
+\[
+    \{q_m\}_{m\in\mathcal M},
+    \qquad
+    \{\alpha_{mp}\}_{m\in\mathcal M,p\in\mathcal P_m}.
+\]
+前者说明服务多少流量，后者说明这些流量走哪些区域路径。
+
+\subsection{区域通量聚合}
+
+将 OD 路径流量聚合到区域边界。设 $T_{ij}$ 为从区域 $i$ 流向相邻区域 $j$ 的静态通量，$T_{i0}$ 为在区域 $i$ 内完成行程并离开空域动态系统的通量，$q_i^g$ 为区域 $i$ 的外部起飞输入。若静态路径是连续且无环的，则每个区域满足守恒关系
+\begin{equation}\label{eq:core_static_conservation}
+    q_i^g+\sum_{j\in\mathcal N_i}T_{ji}
+    =
+    \sum_{j\in\mathcal N_i}T_{ij}+T_{i0}.
+\end{equation}
+
+定义区域 $i$ 的静态吞吐需求：
+\begin{equation}\label{eq:core_lambda}
+    \Lambda_i
+    =
+    q_i^g+\sum_{j\in\mathcal N_i}T_{ji}
+    =
+    \sum_{j\in\mathcal N_i}T_{ij}+T_{i0}.
+\end{equation}
+它表示区域 $i$ 在静态规划中需要处理的总流量。
+
+再定义固定路由比例：
+\begin{equation}\label{eq:core_beta}
+    \beta_{ij}=\frac{T_{ij}}{\Lambda_i},
+    \qquad
+    \beta_{i0}=\frac{T_{i0}}{\Lambda_i},
+    \qquad
+    \sum_{j\in\mathcal N_i}\beta_{ij}+\beta_{i0}=1,
+\end{equation}
+其中 $\Lambda_i>0$。若 $\Lambda_i=0$，则令相关 $\beta$ 为零。
+
+这一步是全文的关键连接点：静态路径规划不再只是给出 OD 路径，而是给出动态模型可直接使用的区域吞吐量 $\Lambda_i$ 和流向比例 $\beta_{ij}$。
+
+\section{动态层：多区域 MFD 流守恒}
+
+令 $n_i(t)$ 为区域 $i$ 内航空器总累积量。MFD 产出函数 $G_i(n_i)$ 描述该区域在累积量为 $n_i$ 时可以产生的总流出能力。
+
+\begin{assumption}[单峰 MFD]\label{asm:core_mfd}
+每个区域的 $G_i(n_i)$ 是单峰函数：在自由流分支 $[0,n_i^{cr}]$ 上严格递增，在拥堵分支上递减，并且最大产出为
+\[
+    G_i^{\max}=G_i(n_i^{cr}).
+\]
+记自由流分支为 $G_{i,s}$，其反函数为 $G_{i,s}^{-1}$。
+\end{assumption}
+
+控制输入 $u_i(t)\in[0,1]$ 表示区域 $i$ 的总流出放行比例。采用静态路由比例 $\beta_{ij}$ 分配流向，则核心动态方程为
+\begin{equation}\label{eq:core_dynamics}
+    \dot n_i(t)
+    =
+    q_i^g
+    +
+    \sum_{j\in\mathcal N_i}\beta_{ji}u_j(t)G_j(n_j(t))
+    -
+    u_i(t)G_i(n_i(t)).
+\end{equation}
+
+这个式子可以直接读成：
+\[
+\text{区域累积量变化}
+=
+\text{外部起飞进入}
++
+\text{邻区转入}
+-
+\text{本区放行流出}.
+\]
+其中 $\beta$ 决定流向，$u_i$ 决定本区总共放出多少。
+
+\section{目标构造：从 \texorpdfstring{$\Lambda_i$}{Lambda} 到 \texorpdfstring{$\bar n_i$}{nbar}}
+
+静态层告诉我们区域 $i$ 需要处理的目标吞吐是 $\Lambda_i$。动态层中，区域实际受控产出是
+\[
+    u_iG_i(n_i).
+\]
+因此目标点最自然的匹配条件是
+\begin{equation}\label{eq:core_bridge}
+    \bar u_iG_i(\bar n_i)=\Lambda_i .
+\end{equation}
+
+为了让控制器在目标点附近还有调节空间，不把目标控制设为 $\bar u_i=1$，而是取
+\begin{equation}\label{eq:core_ubar}
+    \bar u_i=1-\eta_i,\qquad 0<\eta_i<1.
+\end{equation}
+若容量条件
+\begin{equation}\label{eq:core_capacity}
+    0<\Lambda_i<\bar u_iG_i^{\max}
+\end{equation}
+成立，则目标累积量定义为自由流分支上的解：
+\begin{equation}\label{eq:core_target}
+    \bar n_i
+    =
+    G_{i,s}^{-1}\left(\frac{\Lambda_i}{\bar u_i}\right).
+\end{equation}
+
+\begin{proposition}[静态--动态目标连接]\label{prop:core_bridge}
+若静态通量满足守恒式 \eqref{eq:core_static_conservation}，且 $\beta$ 由式 \eqref{eq:core_beta} 定义，则目标条件
+\[
+    \bar u_iG_i(\bar n_i)=\Lambda_i
+\]
+使动态模型 \eqref{eq:core_dynamics} 的稳态流入和流出与静态规划一致。
+\end{proposition}
+
+\begin{proof}[证明思路]
+在稳态处，若每个区域的受控流出为 $\bar u_iG_i(\bar n_i)=\Lambda_i$，则从区域 $i$ 流向区域 $j$ 的动态通量为 $\beta_{ij}\Lambda_i=T_{ij}$，区域内完成流为 $\beta_{i0}\Lambda_i=T_{i0}$。代回动态方程 \eqref{eq:core_dynamics}，每个区域的稳态流入和流出就退化为静态守恒式 \eqref{eq:core_static_conservation}，因此 $\dot n_i=0$。
+\end{proof}
+
+\section{控制律：让区域累积量回到目标}
+
+定义误差
+\begin{equation}\label{eq:core_error}
+    e_i(t)=n_i(t)-\bar n_i .
+\end{equation}
+采用带分母保护的周界控制律：
+\begin{equation}\label{eq:core_control}
+    u_i(t)
+    =
+    \operatorname{sat}_{[0,1]}
+    \left(
+    \frac{\Lambda_i+\kappa_i e_i(t)}
+    {\max\{G_i(n_i(t)),\epsilon_i\}}
+    \right),
+    \qquad
+    \kappa_i>0 .
+\end{equation}
+其中 $\epsilon_i>0$ 用来避免 $G_i(n_i)$ 太小时分母接近零。
+
+当控制不饱和且 $G_i(n_i)>\epsilon_i$ 时，有
+\begin{equation}\label{eq:core_outflow}
+    u_i(t)G_i(n_i(t))
+    =
+    \Lambda_i+\kappa_i e_i(t).
+\end{equation}
+这说明：若区域累积量高于目标（$e_i>0$），控制器会要求更大的流出；若低于目标（$e_i<0$），控制器会减少流出。
+
+\begin{proposition}[单区域直观稳定性]\label{prop:core_single_stability}
+若邻区流入保持在稳态值，且控制律 \eqref{eq:core_control} 在目标附近不饱和，则误差满足
+\[
+    \dot e_i=-\kappa_i e_i,
+\]
+因此 $n_i(t)$ 局部收敛到 $\bar n_i$。
+\end{proposition}
+
+\begin{proof}
+在稳态流入匹配时，区域总流入为 $\Lambda_i$。由式 \eqref{eq:core_outflow}，总流出为 $\Lambda_i+\kappa_i e_i$。所以
+\[
+    \dot e_i
+    =
+    \dot n_i
+    =
+    \Lambda_i-(\Lambda_i+\kappa_i e_i)
+    =
+    -\kappa_i e_i .
+\]
+\end{proof}
+
+\begin{remark}[多区域稳定性]
+多区域情况下，邻区流入也会随状态变化。核心版不展开完整 Jacobian。实际验证时，可在目标点对系统 \eqref{eq:core_dynamics} 和控制律 \eqref{eq:core_control} 做线性化，得到矩阵 $A$。若 $A$ 为 Hurwitz，即所有特征值实部均小于零，则目标点局部渐近稳定。完整版本可进一步引入目的地组分状态 $n_i^D$，并在组分层面构造 $A$。
+\end{remark}
+
+\section{核心算法}
+
+本文模型可以按以下步骤实现：
+\begin{enumerate}
+    \item 给定 OD 需求、候选区域路径、速度--密度函数 $v_i(\cdot)$ 和 MFD 函数 $G_i(\cdot)$；
+    \item 用式 \eqref{eq:core_path_time}--\eqref{eq:core_logit} 计算拥堵感知路径比例；
+    \item 求解或指定静态服务流量 $q_m$；
+    \item 将路径流量聚合成 $T_{ij}$、$T_{i0}$、$q_i^g$，并计算 $\Lambda_i$ 和 $\beta_{ij}$；
+    \item 检查容量条件 $\Lambda_i<\bar u_iG_i^{\max}$；
+    \item 用式 \eqref{eq:core_target} 得到目标累积量 $\bar n_i$；
+    \item 用控制律 \eqref{eq:core_control} 运行动态系统 \eqref{eq:core_dynamics}；
+    \item 在线性化或仿真中检查局部稳定性、饱和频率和区域累积量是否留在自由流分支。
+\end{enumerate}
+
+\section{本文真正想说明什么}
+
+本文的核心并不是提出一个复杂控制器，而是说明低空交通管理可以按以下逻辑组织：
+\begin{enumerate}
+    \item \textbf{静态层不要只给 OD 流量}。它还应该给出区域通量、区域吞吐需求和路由比例。
+    \item \textbf{动态目标不要凭经验设定}。目标累积量应由静态吞吐需求 $\Lambda_i$ 和 MFD 自由流分支共同确定。
+    \item \textbf{控制器只做一件事}。周界控制 $u_i$ 调节区域总流出；流向比例由静态 $\beta$ 给出。
+    \item \textbf{可行性先于稳定性}。如果 $\Lambda_i\ge \bar u_iG_i^{\max}$，区域容量不足，再好的反馈控制也不能让自由流目标成立。
+\end{enumerate}
+
+\section{限制与后续扩展}
+
+这个核心版刻意省略了许多运行细节，包括飞行时间时延、显式起降排队、目的地组分状态、支持集外扰动、fallback routing 和在线重规划。它适合作为论文主线的第一版：先让读者看懂静态规划如何通过 $\Lambda_i$ 和 $\beta$ 进入 MFD 动态控制。后续完整版本可以在此基础上加入目的地组分守恒、严格局部稳定性矩阵、网络级可行性诊断和更完整的仿真实验。
+
+\end{document}
