@@ -1,0 +1,323 @@
+\section{起飞准入与区域控制器设计}\label{sec:controller}
+
+本节从第 5 节得到的流量层桥接关系出发，推导可执行的起飞准入控制器和区域放行控制器。与上一节的目的地标记状态方程不同，控制器设计只使用区域总累积量
+\[
+    n_I(t)=\sum_D n_I^D(t)
+\]
+作为反馈状态。目的地组分状态仍用于定义静态路由比例和动态转移通量，但不再作为主稳定性证明中的高维线性化对象。这样做的依据是多区域 MFD 文献中的水库式控制思想：控制中心优先调节每个区域的总进入和总放行，再由静态路由比例分配边界方向。
+
+\subsection{SO 目标与一般规划目标的边界}
+
+若第 2--3 节的静态规划器确实求解 SO 问题，则 $\{f_m^*,\alpha_m^{(p),*}\}$ 给出的 $\Lambda_I$ 可解释为 Weng et al. 意义下由静态网络均衡诱导的期望动态吞吐目标，此时 $\bar n_I=G_{I,s}^{-1}(\Lambda_I/\bar u_I)$ 是“静态最优计划”对应的自由流动态目标。若服务流量来自固定需求分配、人工路由或其他可复现规划器，则本文后续结论只说明该计划在流量守恒、容量允许和局部不饱和条件下可以被动态系统跟踪；此时不再声称目标具有系统最优解释。
+
+因此，本文把结论分为两层：
+\begin{enumerate}
+    \item \textbf{规划解释层}：SO 输出时，目标继承静态系统最优含义；
+    \item \textbf{控制可行层}：任意守恒静态计划输出时，目标只具有可行闭环跟踪含义。
+\end{enumerate}
+后文稳定性定理只依赖第二层，不依赖 SO 最优性。
+
+\subsection{宏观执行层假设}
+
+Safadi et al. 的 departure/boundary control 在微观层可通过起飞延迟、边界缓冲区、悬停等待或速度命令执行；Aboudolas--Geroliminis 的周界控制也通过实际入口或边界通行能力实现。本文不显式建模这些微观执行细节，而采用下面的宏观执行假设。
+
+\begin{assumption}[宏观执行层]\label{asm:macro_execution}
+在控制采样尺度上，控制中心能够观测区域累积量 $n_I(t)$，查询或估计 MFD 产出 $G_I(n_I(t))$，并向执行层下发两类聚合命令：
+\begin{enumerate}
+    \item 区域 $I$ 的实际起飞准入率 $r_I(t)\in[0,\bar q_I^a]$；
+    \item 区域 $I$ 的总放行率 $z_I(t)\in[0,G_I(n_I(t))]$，再按静态比例 $\beta_{I\to K}^D$ 分配为目的地标记的边界/完成流。
+\end{enumerate}
+若界面 $I\to K$ 的聚合执行容量为 $C_{IK}$，则目标附近需满足逐界面局部裕度
+\begin{equation}\label{eq:boundary_execution_margin}
+    \bar Z_{IK}\equiv \sum_D T_{I\to K}^D < C_{IK},
+    \qquad K\in\mathcal N_I\cup\{I\}.
+\end{equation}
+当 $K=I$ 时，$C_{II}$ 表示区域内完成/降落处理能力；若某个界面不显式建模容量，可取 $C_{IK}=+\infty$。
+\end{assumption}
+
+\begin{remark}
+假设 \ref{asm:macro_execution} 是本文从文献中的 MPC/队列执行模型退化到解析控制器时的关键理想化。它不是说真实边界没有队列，而是把队列、缓冲区和微观命令系统视为可执行给定聚合放行率的下层模块。若下层无法按比例执行 $z_I(t)\beta_{I\to K}^D$，则应在仿真中记录容量违背、队列溢出或饱和，并且不能直接使用本文的局部稳定性结论。
+\end{remark}
+
+\begin{proposition}[目标邻域内的边界可执行性]\label{prop:boundary_executable}
+若式 \eqref{eq:boundary_execution_margin} 成立，且区域放行控制在目标附近不饱和并满足 $z_I(t)=\Lambda_I+\kappa e_I(t)$，则存在 $\delta_I>0$，使得当 $|e_I(t)|<\delta_I$ 时所有执行流
+\[
+    z_{I\to K}(t)=\sum_D \mathcal T_{I\to K}^D(t)
+\]
+均满足 $z_{I\to K}(t)<C_{IK}$。
+\end{proposition}
+
+\begin{proof}
+在目标点，静态--动态桥接给出 $\bar z_{I\to K}=\sum_D T_{I\to K}^D=\bar Z_{IK}<C_{IK}$。在目标邻域内，$z_I(t)$、$\pi_I^D(t)$ 与 $\mathcal T_{I\to K}^D(t)$ 关于状态连续，且目标点具有正容量裕度 $C_{IK}-\bar Z_{IK}$。对有限个界面取足够小邻域即可。
+\end{proof}
+
+\subsection{起飞准入控制器}
+
+令 $\bar q_I^{\mathrm{phys}}$ 为区域 $I$ 的物理起飞容量，$\bar q_I^{\mathrm{pot}}$ 为当前潜在起飞需求上限，并定义
+\begin{equation}\label{eq:takeoff_capacity_v20}
+    \bar q_I^a=\min\{\bar q_I^{\mathrm{phys}},\bar q_I^{\mathrm{pot}}\}.
+\end{equation}
+静态计划应满足 $0\le \bar q_{g,I}\le \bar q_I^a$。为连接 Safadi et al. 的 departure management，可引入一个可选的聚合起飞队列：
+\begin{equation}\label{eq:departure_queue}
+    \dot Q_I(t)=d_I(t)-r_I(t),\qquad Q_I(t)\ge0,
+\end{equation}
+其中 $d_I(t)$ 是潜在起飞需求到达率，$r_I(t)$ 是实际准入空域的起飞率。本文不证明队列 $Q_I(t)$ 的稳定性；队列长度、起飞延误和拒绝率只作为性能指标。空域累积量稳定性只针对已被准入的流量。
+
+定义区域总量误差
+\begin{equation}\label{eq:total_error_v20}
+    e_I(t)=n_I(t)-\bar n_I.
+\end{equation}
+起飞准入控制器为
+\begin{equation}\label{eq:takeoff_controller_v20}
+    r_I(t)=
+    \operatorname{sat}_{[0,\bar q_I^a]}
+    \left(\bar q_{g,I}-\eta e_I(t)\right),
+    \qquad \eta\ge0.
+\end{equation}
+其含义是：区域累积量高于目标时，减少新的外部进入；区域累积量低于目标时，恢复起飞准入。若 $\eta>0$，要求 $\bar q_{g,I}$ 位于 $(0,\bar q_I^a)$ 内部；若某区域的静态起飞计划已在容量边界上，则主定理中可取 $\eta=0$，把起飞率视为固定计划输入。
+
+为了把总起飞率注入目的地标记动态方程，定义静态起飞目的地比例
+\begin{equation}\label{eq:departure_destination_share}
+    \gamma_I^D=
+    \begin{cases}
+    \dfrac{\bar q_{g,I}^D}{\bar q_{g,I}}, & \bar q_{g,I}>0,\\[0.8em]
+    0, & \bar q_{g,I}=0.
+    \end{cases}
+\end{equation}
+动态方程中的外部输入取为
+\begin{equation}\label{eq:controlled_departure_component}
+    q_{g,I}^D(t)=\gamma_I^D r_I(t).
+\end{equation}
+于是 $\sum_D q_{g,I}^D(t)=r_I(t)$，并且目标点处 $r_I=\bar q_{g,I}$ 时恢复静态起飞结构。
+
+\subsection{区域总放行控制器}
+
+根据稳态桥接关系，目标点处区域 $I$ 的总放行率应为 $\Lambda_I$。当 $e_I>0$ 时应增加放行，当 $e_I<0$ 时应减少放行。因此定义期望总放行率
+\begin{equation}\label{eq:desired_release_v20}
+    z_I^d(t)=\Lambda_I+\kappa e_I(t),
+    \qquad \kappa>0.
+\end{equation}
+区域 MFD 只能提供 $G_I(n_I(t))$ 的当前产出能力，因此把期望放行率转换为比例控制：
+\begin{equation}\label{eq:regional_controller_v20}
+    u_I(t)=
+    \operatorname{sat}_{[0,1]}
+    \left(
+    \frac{z_I^d(t)}
+    {\max\{G_I(n_I(t)),\epsilon_I\}}
+    \right),
+    \qquad 0<\epsilon_I<G_I(\bar n_I).
+\end{equation}
+实际总放行率为
+\begin{equation}\label{eq:release_rate_v20}
+    z_I(t)=G_I(n_I(t))u_I(t).
+\end{equation}
+在目的地标记模型中，这等价于使用原来的动态转移通量
+\begin{equation}\label{eq:controlled_transfer_flux_v20}
+    \mathcal T_{I\to K}^D(t)
+    =
+    z_I(t)\,\pi_I^D(t)\,\beta_{I\to K}^D.
+\end{equation}
+在支持集一致和 $\beta$ 归一化条件下，对 $D,K$ 求和可得 $\sum_{D,K}\mathcal T_{I\to K}^D(t)=z_I(t)$。
+
+\begin{lemma}[局部未饱和执行邻域]\label{lem:unsaturated_v20}
+若 $0<\bar u_I<1$、$0<\epsilon_I<G_I(\bar n_I)$，且起飞反馈使用时满足 $0<\bar q_{g,I}<\bar q_I^a$，则存在目标邻域，使得闭环在该邻域内满足
+\begin{equation}\label{eq:unsaturated_values_v20}
+    r_I(t)=\bar q_{g,I}-\eta e_I(t),
+    \qquad
+    z_I(t)=\Lambda_I+\kappa e_I(t).
+\end{equation}
+若 $\eta=0$，则无需起飞内点条件。
+\end{lemma}
+
+\begin{proof}
+目标点处 $\Lambda_I/G_I(\bar n_I)=\bar u_I\in(0,1)$，且 $G_I(\bar n_I)>\epsilon_I$。由 $G_I$ 的连续性，存在足够小邻域使区域控制器未饱和且分母实际取 $G_I(n_I)$。起飞准入部分同理由 $\bar q_{g,I}$ 位于 $(0,\bar q_I^a)$ 内部得到。有限个活动区域取交集即可。
+\end{proof}
+
+\subsection{总量闭环稳定性}
+
+令 $B$ 为正吞吐区域上的跨区域转移比例矩阵，即式 \eqref{eq:transfer_matrix} 中的 $P$；为避免与 Lyapunov 矩阵混淆，本节记为 $B$。它不包含区域内完成流，因此是非负次随机矩阵。
+
+\begin{theorem}[起飞--区域联合控制的局部指数稳定]\label{thm:multi_region_stability}
+考虑活动区域集合 $\mathcal R_+$ 上的总量闭环。假设：
+\begin{enumerate}
+    \item 静态通量非负，满足目的地标记节点守恒式 \eqref{eq:destination_node_conservation}；
+    \item 对每个 $I\in\mathcal R_+$，容量条件 \eqref{eq:feasibility} 成立，且 $0\le \bar q_{g,I}\le \bar q_I^a$；
+    \item 宏观执行层假设 \ref{asm:macro_execution} 成立，且目标附近边界流不触发容量饱和；
+    \item 非活动区域无计划流量，或由独立排空规则处理而不进入活动子系统；
+    \item 跨区域转移矩阵满足
+    \begin{equation}\label{eq:rho_v20}
+        \rho(B)<1.
+    \end{equation}
+\end{enumerate}
+则存在目标邻域，使 $\bar{\bm n}$ 对活动子系统局部指数稳定。未饱和邻域内的精确总量误差系统为
+\begin{equation}\label{eq:error_system_v20}
+    \dot{\bm e}=
+    \left[\kappa(B^T-I)-\eta I\right]\bm e.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+对目的地标记动态方程 \eqref{eq:dynamic_master} 关于 $D$ 求和，并使用式 \eqref{eq:controlled_departure_component} 和 \eqref{eq:controlled_transfer_flux_v20}，得到活动区域总量动态
+\begin{equation}
+    \dot n_I(t)=r_I(t)+\sum_{H\in\mathcal N_I\cap\mathcal R_+}B_{HI}z_H(t)-z_I(t).
+\end{equation}
+在引理 \ref{lem:unsaturated_v20} 的邻域内代入 \eqref{eq:unsaturated_values_v20}，并用静态--动态桥接消去常数项：
+\begin{align}
+    \dot e_I
+    &=
+    \bar q_{g,I}-\eta e_I+
+    \sum_H B_{HI}(\Lambda_H+\kappa e_H)
+    -(\Lambda_I+\kappa e_I) \nonumber\\
+    &=
+    \kappa\sum_H B_{HI}e_H-\kappa e_I-\eta e_I .
+\end{align}
+向量形式即为 \eqref{eq:error_system_v20}。
+
+矩阵 $B^T$ 与 $B$ 有相同特征值。若 $\lambda\in\sigma(B^T)$，则 $|\lambda|\le\rho(B)<1$。闭环矩阵 $A_c=\kappa(B^T-I)-\eta I$ 的对应特征值为 $\mu=\kappa(\lambda-1)-\eta$，且
+\[
+    \operatorname{Re}\mu
+    =
+    \kappa(\operatorname{Re}\lambda-1)-\eta
+    \le
+    \kappa(|\lambda|-1)-\eta<0.
+\]
+故 $A_c$ 为 Hurwitz，线性误差系统指数稳定。取足够小的指数稳定邻域，使其包含于未饱和且边界可执行邻域内，即得到原饱和闭环系统的局部指数稳定。
+\end{proof}
+
+\begin{remark}[定理适用边界]\label{rem:stability_scope_v20}
+定理 \ref{thm:multi_region_stability} 不覆盖以下情形：MFD 标定误差导致的模型反演偏差、采样保持控制造成的离散化不稳定、边界缓冲区或起飞队列溢出、轨迹进入拥堵分支、在线重路由导致的切换系统、以及支持集外目的地组分的大扰动。上述问题需要在仿真或扩展模型中单独验证。
+\end{remark}
+
+\begin{remark}[异质增益]
+若采用区域异质增益 $\eta_I,\kappa_I$，未饱和误差系统为
+\[
+    \dot{\bm e}=B^T K\bm e-K\bm e-H\bm e,
+    \quad K=\operatorname{diag}(\kappa_I),\quad H=\operatorname{diag}(\eta_I).
+\]
+此时不再使用定理 \ref{thm:multi_region_stability} 的简单谱半径证明，而应直接计算该矩阵的谱横坐标。共同增益版本的作用，是把主要理论线索保持在读者熟悉的特征值关系上。
+\end{remark}
+
+\section{网络级可行性与验证算法}
+
+\begin{definition}[网络可行性条件]\label{def:network_feasibility}
+多区域 UAM 网络的闭环验证需要同时满足以下条件：
+\begin{enumerate}
+    \item \textbf{静态路径节点守恒}：静态通量由式 \eqref{eq:aggregation} 聚合得到，并满足 \eqref{eq:destination_node_conservation}；
+    \item \textbf{逐区域 MFD 容量}：$\Lambda_I<\bar u_I G_I^{\max}$，$\forall I\in\mathcal R_+$；
+    \item \textbf{起飞准入容量}：$0\le \bar q_{g,I}\le \bar q_I^a$，且若使用 $\eta>0$，则 $\bar q_{g,I}$ 位于容量内点；
+    \item \textbf{逐界面执行容量}：目标边界/完成流满足式 \eqref{eq:boundary_execution_margin}；
+    \item \textbf{跨区域转移瞬态性}：$B$ 满足 $\rho(B)<1$；
+    \item \textbf{局部未饱和验证}：仿真扰动范围内 $r_I(t)$、$u_I(t)$、$z_{I\to K}(t)$ 不频繁触发饱和。
+\end{enumerate}
+\end{definition}
+
+\begin{algorithm}[规划--起飞--区域控制验证流程]\label{alg:network_feasibility_stability}
+\textbf{输入}：静态规划结果 $\{f_m^*,S_m^{(p)},\alpha_m^{(p),*}\}$，MFD 标定对象 $\{G_I(\cdot),G_{I,s}^{-1},G_I^{\max},n_I^{cr,*}\}$，目标放行比例 $\{\bar u_I\}$，起飞容量 $\{\bar q_I^a\}$，界面容量 $\{C_{IK}\}$，控制增益 $\eta,\kappa$，正则化流率 $\epsilon_I$。
+
+\textbf{步骤}：
+\begin{enumerate}
+    \item 计算宏观通量 $T_{I\to K}^D$、$\bar q_{g,I}^D$ 和 $\Lambda_I$，检查 \eqref{eq:destination_node_conservation}；
+    \item 对 $\Lambda_I>0$ 的区域检查 $\Lambda_I<\bar u_I G_I^{\max}$，并计算 $\bar n_I=G_{I,s}^{-1}(\Lambda_I/\bar u_I)$；
+    \item 检查 $0\le \bar q_{g,I}\le\bar q_I^a$；若 $\eta>0$，进一步检查起飞计划为容量内点；
+    \item 构造 $B$，检查 $\rho(B)<1$；
+    \item 计算目标界面流 $\bar Z_{IK}=\sum_D T_{I\to K}^D$，检查 $\bar Z_{IK}<C_{IK}$；
+    \item 构造闭环矩阵 $A_c=\kappa(B^T-I)-\eta I$，报告谱横坐标；
+    \item 在目标附近施加扰动，运行 \eqref{eq:takeoff_controller_v20} 和 \eqref{eq:regional_controller_v20}，记录误差衰减、起飞队列指标、控制饱和频率和界面容量裕度。
+\end{enumerate}
+
+\textbf{输出}：均衡可行性判定、失败类型、目标均衡状态、$\rho(B)$、闭环谱横坐标、饱和频率和最小容量裕度。
+\end{algorithm}
+
+\section{最小算例}
+
+为说明上述条件不是纯形式约束，考虑一个三区域活动网络。聚合静态计划如表 \ref{tab:toy_static} 所示，单位为 aircraft/min。跨区比例矩阵为
+\begin{equation}
+    B=
+    \begin{bmatrix}
+    0 & 0.2 & 0.1\\
+    0.1 & 0 & 0.2\\
+    0.1 & 0.1 & 0
+    \end{bmatrix},
+    \qquad
+    \rho(B)=0.263<1.
+\end{equation}
+每行剩余比例为区域内完成/离网流，因此不存在无泄漏闭合跨区循环。
+
+\begin{table}[htbp]
+\centering
+\caption{三区域静态通量与目标构造}
+\label{tab:toy_static}
+\begin{tabular}{cccccc}
+\toprule
+区域 $I$ & $\Lambda_I$ & $\bar q_{g,I}$ & 跨区转移流 & 完成流 & $\bar n_I$\\
+\midrule
+1 & 5.0 & 4.3 & $T_{12}=1.0,\ T_{13}=0.5$ & 3.5 & 53.23\\
+2 & 4.0 & 2.7 & $T_{21}=0.4,\ T_{23}=0.8$ & 2.8 & 41.89\\
+3 & 3.0 & 1.7 & $T_{31}=0.3,\ T_{32}=0.3$ & 2.4 & 31.01\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MFD 采用归一化单峰曲线
+\[
+    G_I(n)=G_I^{\max}\left[2\frac{n}{n_I^{cr}}-\left(\frac{n}{n_I^{cr}}\right)^2\right],
+    \quad 0\le n\le n_I^{cr},
+\]
+其中 $(G_I^{\max})=(8,7,6)$，$(n_I^{cr})=(100,90,80)$，目标放行比例 $\bar u_I=0.8$。由 $\bar u_I G_I(\bar n_I)=\Lambda_I$ 得表 \ref{tab:toy_static} 中的目标累积量。
+
+取 $\kappa=0.4$、$\eta=0.1$，则闭环矩阵
+\[
+    A_c=\kappa(B^T-I)-\eta I
+    =
+    \begin{bmatrix}
+    -0.50 & 0.04 & 0.04\\
+    0.08 & -0.50 & 0.04\\
+    0.04 & 0.08 & -0.50
+    \end{bmatrix}.
+\]
+其特征值约为 $-0.395,-0.539,-0.567$，谱横坐标为 $-0.395<0$。从初始扰动 $\bm e(0)=(5,-4,3)^T$ 出发，线性未饱和系统的误差衰减如表 \ref{tab:toy_decay}。
+
+\begin{table}[htbp]
+\centering
+\caption{最小算例的闭环误差衰减}
+\label{tab:toy_decay}
+\begin{tabular}{ccccc}
+\toprule
+时间 & $e_1(t)$ & $e_2(t)$ & $e_3(t)$ & $\|\bm e(t)\|_2$\\
+\midrule
+0  & 5.0000 & -4.0000 & 3.0000 & 7.0711\\
+5  & 0.4129 & -0.1179 & 0.2387 & 0.4913\\
+10 & 0.0382 & 0.0090 & 0.0265 & 0.0474\\
+15 & 0.0040 & 0.0027 & 0.0036 & 0.0060\\
+20 & 0.0005 & 0.0005 & 0.0005 & 0.0008\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+若取起飞容量 $\bar q^a=(5,4,3)$，并为主要跨区界面设置容量不低于 $1.6$，则在上述扰动轨迹上 $r_I(t)$ 始终位于容量范围内，$z_{12}(t)$ 的最大值约为 $1.4<C_{12}$，其他跨区边界裕度更大。该算例只验证局部未饱和机制和 $\rho(B)<1$ 判据；它不替代大规模仿真，也不覆盖队列溢出或拥堵分支恢复。
+
+\section{数值仿真方案}
+
+完整数值部分建议保留四组实验。第一，\textbf{静态--动态桥接验证}：从静态路径输出计算 $\bar q_{g,I}^D,T_{I\to K}^D,\Lambda_I,\beta_{I\to K}^D$，逐项检查 \eqref{eq:destination_node_conservation} 和 $G_I(\bar n_I)\bar u_I=\Lambda_I$。第二，\textbf{闭环稳定实验}：从目标附近多个初值出发，验证误差指数衰减，并对比理论矩阵 $A_c$ 的谱横坐标与观测衰减率。第三，\textbf{起飞控制消融}：比较 $\eta=0$ 与 $\eta>0$，观察高累积扰动下起飞准入减少是否降低峰值累积量、边界饱和时间和起飞队列增长。第四，\textbf{路由与容量鲁棒实验}：比较固定最短路、拥堵感知 Logit 路由和人工均衡路由对 $\Lambda_I$、$\rho(B)$、最大区域累积量和控制饱和频率的影响，并扰动 $G_I^{\max}$、需求水平、起飞容量 $\bar q_I^a$ 和界面容量 $C_{IK}$。
+
+性能指标包括：总服务吞吐、区域累积量误差 $\|\bm e(t)\|$、起飞队列长度或拒绝/延迟量、区域放行饱和频率、逐边界流量峰值、完成流、最大自由流裕度 $n_I^{cr,*}-\max_t n_I(t)$、以及路径层固定点密度与动态目标密度之间的偏差。
+
+\section{模型限制与未来研究方向}
+
+\begin{enumerate}
+    \item 路径层收敛性以假设 \ref{asm:path_convergence} 为前提；式 \eqref{eq:path_invariance_sufficient} 和数值 Lipschitz 检查只提供可验证的充分或经验条件，不能替代一般网络上的全局收敛证明。
+    \item SO 规划器给出的目标有静态最优解释；非 SO 规划器只给出守恒可行目标，不应被表述为系统最优均衡。
+    \item 本文采用理想宏观执行层。真实 LAAT 系统中的边界缓冲区、悬停能耗、冲突避让、通信延迟和微观速度命令都可能使 $z_{I\to K}(t)$ 偏离期望值。
+    \item 起飞队列 $Q_I(t)$ 只作为性能指标，不纳入稳定性证明。若需求长期大于准入能力，队列可能发散，即使空域累积量稳定。
+    \item 多区域稳定性要求外部输入比例、路由比例和活动支持集固定，且轨迹保持在目标点附近自由流不饱和邻域内。在线重路由或支持集外扰动会形成切换系统。
+    \item 当区域已经处于拥堵分支且 $G_I(n_I)<\Lambda_I$ 时，完全打开区域放行也可能不足以恢复，需要需求削减、临时禁入或更长预测域控制。
+    \item 最小算例只验证理论链条和局部闭环；大规模网络可扩展性仍需用高保真仿真或实测 MFD 标定进一步验证。
+\end{enumerate}
+
+未来工作应重点发展包含飞行时延、起飞/边界队列稳定性、能耗约束和微观执行偏差的扩展模型，并在 LAAT-Flow 等高保真平台中验证宏观命令到微观执行之间的误差。
+
+\section{结论}
+
+本文保留静态 SO、拥堵感知路径规划、目的地标记流守恒和稳态桥接的前半部分主线，同时将控制器设计改写为更接近 LAAT/MFD 文献方法论的两层执行结构：起飞准入 $r_I(t)$ 控制外部进入，区域放行 $z_I(t)$ 控制由 MFD 产出支持的总离开/转移流，再由静态 $\beta$ 分配边界方向。该控制器不是从陌生定理中硬推出来的，而是直接来自守恒关系、MFD 目标匹配和 departure/boundary control 的物理分工。在共同增益和局部不饱和条件下，误差系统化为 $\dot{\bm e}=[\kappa(B^T-I)-\eta I]\bm e$，因此 $\rho(B)<1$ 给出简单可算的局部指数稳定判据。宏观执行假设、起飞队列解释和最小三区域算例进一步说明：本文结论成立在清楚的理想化边界内，也为后续更真实的队列、MPC 或微观执行模型留下接口。
+
+\end{document}

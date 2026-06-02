@@ -210,3 +210,26 @@ The stability proof is acceptable: `\rho(B)<1` implies `I-B^T` is a nonsingular 
 The simplified method uses a regional MFD network with one state per region: `n_i(t)`. Static routing aggregates OD/path decisions into nonnegative conserved flows `T_{ij}` and completion flows `T_{i0}`, producing route proportions `\beta_{ij}` and regional throughput demands `\Lambda_i`. For each active region, a control margin `\bar u_i\in(0,1)` places the target on the MFD free-flow branch via `\bar n_i=G_{i,s}^{-1}(\Lambda_i/\bar u_i)`.
 
 The closed-loop controller is a scalar regional release law that forces the unsaturated outflow to `\Lambda_i+\kappa_i(n_i-\bar n_i)`. In the local free-flow unsaturated neighborhood, the exact error dynamics reduce to `\dot{\bm e}=(B^T-I)K\bm e`. If the inter-region route matrix `B` is substochastic and `\rho(B)<1`, then `(B^T-I)K` is Hurwitz and the target regional accumulations are locally exponentially stable.
+
+## LAATDraft v2.0 Controller Rewrite Auto Review (2026-06-02 10:14:51 +08:00)
+
+### Assessment Summary
+- Round 1 reviewer score: 8.4/10, verdict: almost. Key blockers: macro boundary executability, MFD inversion scope, departure queue interpretation, SO vs general-planner claim boundary, and missing toy verification.
+- Round 2 reviewer score: 9.3/10, verdict: almost. Remaining blocker: toy example used an initial perturbation outside the unsaturated execution neighborhood.
+- Round 3 reviewer score: 9.6/10, verdict: ready. Remaining blocker: none for the stated purpose.
+
+### Actions Taken
+- Rewrote drafts/LAATDraft_v2.0.tex from the controller section onward while preserving the pre-controller structure from LAATDraft_v1.1.tex.
+- Added SO/general-planner claim boundary, method-mapping table, macro execution assumption, boundary executability proposition, optional departure queue model, takeoff admission controller, regional total-release controller, local unsaturated lemma, and local exponential stability theorem.
+- Added network feasibility algorithm and a three-region toy case with ho(B), closed-loop eigenvalues, corrected unsaturated error decay, and capacity checks.
+- Cleaned target-margin notation from eta_I to xi_I to avoid conflict with takeoff feedback gain.
+
+### Verification
+- latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error LAATDraft_v2.0.tex completed successfully.
+- Final log scan found no LaTeX warnings, errors, overfull, or underfull boxes.
+- Final reviewer score reached the user-required threshold: 9.6/10 ready.
+
+### Method Description
+The final method bridges a static SO or otherwise feasible route plan to dynamic LAAT control by aggregating destination-marked static path flows into regional throughput demands Lambda_I, choosing free-flow MFD target accumulations via G_{I,s}^{-1}(Lambda_I/bar u_I), and separating execution into two interpretable controls: takeoff admission _I(t) for external entry and regional total release z_I(t) for MFD-supported outflow. Static routing proportions eta_{I->K}^D allocate the regional release to boundary and completion flows, while the macro execution assumption and capacity-margin proposition state exactly when this aggregate command is physically executable.
+
+Under fixed routing/support, local non-saturation, sufficient boundary capacity, and ho(B)<1 for the cross-region transfer matrix, the active-region total accumulation error obeys the transparent closed-loop system dot e = [kappa(B^T-I)-eta I]e, giving local exponential convergence without relying on a high-dimensional unfamiliar theorem. Queue, MFD-error, sampling, congestion-branch, and online-routing limitations are explicitly scoped out and routed to simulation checks.
